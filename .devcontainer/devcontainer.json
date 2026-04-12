@@ -1,0 +1,17 @@
+{
+  "name": "TripMate Quick Workshop",
+  "dockerComposeFile": "../docker-compose.yml",
+  "service": "app",
+  "workspaceFolder": "/workspace",
+  "forwardPorts": [3000, 11434],
+  "postCreateCommand": "npm install && cd challenges/04-ui && npm install",
+  "postStartCommand": "bash .devcontainer/pull-models.sh",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode"
+      ]
+    }
+  }
+}

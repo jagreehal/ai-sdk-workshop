@@ -1,0 +1,32 @@
+{
+  "name": "tripmate-quick-workshop",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "TripMate AI — 90-minute quick workshop",
+  "scripts": {
+    "verify": "tsx challenges/00-setup/verify.ts",
+    "q1": "tsx challenges/01-tools/start/agent.ts",
+    "q2": "tsx challenges/02-multi-agent/start/agent.ts",
+    "q3:intro": "tsx challenges/03-rag/intro-embeddings.ts",
+    "q3": "tsx challenges/03-rag/start/agent.ts",
+    "ui": "npm --prefix challenges/04-ui run ui",
+    "solution:q1": "tsx challenges/01-tools/finish/agent.ts",
+    "solution:q2": "tsx challenges/02-multi-agent/finish/agent.ts",
+    "solution:q3": "tsx challenges/03-rag/finish/agent.ts",
+    "solution:ui": "npm --prefix challenges/04-ui run solution",
+    "build": "tsc --noEmit",
+    "precache": "tsx scripts/precache-embeddings.ts"
+  },
+  "dependencies": {
+    "ai": "^6.0.158",
+    "ai-sdk-ollama": "^3.8.3",
+    "autotel": "^2.26.0",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@ai-sdk/devtools": "^0.0.15",
+    "@types/node": "^25.6.0",
+    "tsx": "^4.21.0",
+    "typescript": "^6.0.2"
+  }
+}
