@@ -1,24 +1,10 @@
-// Challenge 2: Multi-Tool Agent
+// Challenge 04: Multi-Agent
 // The agent autonomously decides which tools to call and in what order
 
 import { ToolLoopAgent, tool, stepCountIs } from 'ai';
 import { z } from 'zod';
 import { model } from '../../../shared/model.ts';
-import {init} from 'autotel';
-
-init({
-  service: '02-multi-agent',
-  version: '1.0.0',
-  environment: 'development',
-  debug: true,
-});
-
-function getRouteSeed(from: string, to: string, date: string): number {
-  return `${from}-${to}-${date}`
-    .toLowerCase()
-    .split('')
-    .reduce((total, char) => total + char.charCodeAt(0), 0);
-}
+import { getRouteSeed, weatherData, activitiesData, currencyRates } from '../../../shared/utils.ts';
 
 const getWeather = tool({
   description: 'Get the current weather for a city',
@@ -26,14 +12,7 @@ const getWeather = tool({
     city: z.string().describe('The city name'),
   }),
   execute: async ({ city }) => {
-    const data: Record<string, { temp: number; condition: string }> = {
-      london: { temp: 12, condition: 'rainy' },
-      tokyo: { temp: 22, condition: 'sunny' },
-      bali: { temp: 30, condition: 'tropical' },
-      paris: { temp: 18, condition: 'partly cloudy' },
-      lisbon: { temp: 24, condition: 'sunny and mild' },
-    };
-    const weather = data[city.toLowerCase()] || { temp: 20, condition: 'mild' };
+    const weather = weatherData[city.toLowerCase()] || { temp: 20, condition: 'mild' };
     return { city, temperature: `${weather.temp}°C`, condition: weather.condition };
   },
 });
@@ -65,11 +44,7 @@ const convertCurrency = tool({
     to: z.string().describe('Target currency code (e.g., GBP)'),
   }),
   execute: async ({ amount, from, to }) => {
-    const rates: Record<string, number> = {
-      'USD-GBP': 0.79, 'USD-EUR': 0.92, 'USD-JPY': 149.5,
-      'GBP-USD': 1.27, 'GBP-EUR': 1.16, 'EUR-USD': 1.09,
-    };
-    const rate = rates[`${from}-${to}`] || 1;
+    const rate = currencyRates[`${from}-${to}`] || 1;
     return { original: `${amount} ${from}`, converted: `${(amount * rate).toFixed(2)} ${to}`, rate };
   },
 });
@@ -80,12 +55,7 @@ const getActivities = tool({
     city: z.string().describe('The city to get activities for'),
   }),
   execute: async ({ city }) => {
-    const activities: Record<string, string[]> = {
-      tokyo: ['Visit Senso-ji Temple', 'Explore Shibuya Crossing', 'Try ramen in Shinjuku', 'See cherry blossoms in Ueno Park'],
-      london: ['Visit the British Museum', 'Walk along the South Bank', 'Explore Camden Market', 'See a West End show'],
-      bali: ['Visit Uluwatu Temple', 'Surf at Kuta Beach', 'Explore rice terraces in Ubud', 'Watch a Kecak fire dance'],
-    };
-    const cityActivities = activities[city.toLowerCase()] || ['Explore the city centre', 'Visit local markets', 'Try the local cuisine'];
+    const cityActivities = activitiesData[city.toLowerCase()] || ['Explore the city centre', 'Visit local markets', 'Try the local cuisine'];
     return { city, activities: cityActivities };
   },
 });

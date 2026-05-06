@@ -4,7 +4,7 @@
   "service": "app",
   "workspaceFolder": "/workspace",
   "forwardPorts": [3000, 11434],
-  "postCreateCommand": "npm install && cd challenges/04-ui && npm install",
+  "postCreateCommand": "npm install && cd challenges/06-ui && npm install",
   "postStartCommand": "bash .devcontainer/pull-models.sh",
   "customizations": {
     "vscode": {

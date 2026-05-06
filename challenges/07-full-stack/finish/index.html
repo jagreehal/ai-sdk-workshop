@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TripMate - Travel Planning Agent</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .message {
+      margin: 12px 0;
+      padding: 12px;
+      border-radius: 8px;
+      line-height: 1.5;
+      animation: fadeIn 0.3s ease-in;
+      word-wrap: break-word;
+    }
+    .user-message {
+      background-color: #dbeafe;
+      text-align: right;
+      margin-left: 20%;
+      color: #1e40af;
+    }
+    .agent-message {
+      background-color: #f3f4f6;
+      margin-right: 20%;
+      color: #374151;
+    }
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(-5px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    #messages {
+      scroll-behavior: smooth;
+    }
+    .loading {
+      display: inline-block;
+      animation: pulse 1.5s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% {
+        opacity: 1;
+      }
+      50% {
+        opacity: 0.5;
+      }
+    }
+  </style>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-50">
+  <div class="min-h-screen flex flex-col">
+    <!-- Header -->
+    <div class="bg-white border-b shadow-sm">
+      <div class="max-w-3xl mx-auto px-4 py-4">
+        <h1 class="text-3xl font-bold text-gray-900">🧳 TripMate</h1>
+        <p class="text-gray-600 text-sm">Your AI travel planning assistant</p>
+      </div>
+    </div>
+
+    <!-- Chat Container -->
+    <div class="flex-1 overflow-hidden flex flex-col">
+      <div class="max-w-3xl mx-auto w-full flex flex-col flex-1 px-4 py-4">
+        <!-- Messages -->
+        <div id="messages" class="flex-1 overflow-y-auto border rounded-lg bg-white shadow-sm p-4 mb-4">
+          <div class="text-center text-gray-400 py-8">
+            <p class="text-lg">👋 Welcome to TripMate!</p>
+            <p class="text-sm mt-2">Ask me to plan a trip, find destinations, or check the weather.</p>
+            <div class="mt-4 text-xs text-gray-500">
+              <p>Try: "Plan a weekend trip to Tokyo" or "Find me a warm, affordable destination"</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Input Area -->
+        <div class="flex gap-2">
+          <input
+            id="input"
+            type="text"
+            placeholder="Ask me about destinations, plan a trip, or check the weather..."
+            class="flex-1 border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          />
+          <button
+            id="send"
+            class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg font-medium transition disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Send
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const input = document.getElementById('input');
+    const send = document.getElementById('send');
+    const messages = document.getElementById('messages');
+    let isLoading = false;
+
+    async function sendMessage() {
+      const message = input.value.trim();
+      if (!message || isLoading) return;
+
+      console.log('📤 Sending message:', message);
+
+      // Clear initial placeholder if it's still there
+      if (messages.textContent.includes('Welcome to TripMate')) {
+        messages.innerHTML = '';
+      }
+
+      // Add user message
+      const userDiv = document.createElement('div');
+      userDiv.className = 'message user-message';
+      userDiv.textContent = message;
+      messages.appendChild(userDiv);
+
+      // Clear input
+      input.value = '';
+      input.focus();
+
+      // Create container for agent response
+      const agentDiv = document.createElement('div');
+      agentDiv.className = 'message agent-message';
+      agentDiv.textContent = '⏳ Waiting for response...';
+      messages.appendChild(agentDiv);
+      messages.scrollTop = messages.scrollHeight;
+
+      // Set loading state
+      isLoading = true;
+      send.disabled = true;
+
+      try {
+        console.log('🌐 Fetching /api/chat...');
+        const response = await fetch('/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message }),
+        });
+
+        console.log('📥 Response status:', response.status);
+
+        if (!response.ok) {
+          const errorText = `Error: ${response.status} ${response.statusText}`;
+          agentDiv.textContent = errorText;
+          console.error('❌', errorText);
+          return;
+        }
+
+        // Get the full response text (simpler than getReader)
+        const text = await response.text();
+        console.log('✅ Received response, length:', text.length);
+        console.log('📄 Response preview:', text.substring(0, 100) + '...');
+
+        // Display the response
+        agentDiv.textContent = text;
+        messages.scrollTop = messages.scrollHeight;
+      } catch (error) {
+        const errorMsg = `Error: ${error.message}`;
+        agentDiv.textContent = errorMsg;
+        console.error('❌ Chat error:', error);
+      } finally {
+        isLoading = false;
+        send.disabled = false;
+        input.focus();
+      }
+    }
+
+    // Send button click
+    send.addEventListener('click', sendMessage);
+
+    // Allow Enter to send (but Shift+Enter for new line could be added later)
+    input.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+      }
+    });
+
+    // Focus input on load
+    input.focus();
+  </script>
+</body>
+</html>

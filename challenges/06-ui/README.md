@@ -1,12 +1,14 @@
-# 04 - TripMate UI
+# 06 - TripMate UI
+
+> **Prerequisite:** Complete challenges 01-05 (01-hello through 05-rag) first. You need your working agent with all 5 tools from challenge 05.
 
 Your agent runs in a real streaming chat UI.
 
-> No React knowledge needed. The UI is pre-built. You only edit one file: `ai-tools.ts`. The Vite plugin (`vite-api-plugin.ts`) handles all the server plumbing and imports your tools automatically. This challenge is about wiring your tools into a streaming endpoint -- the same work you did in Challenges 1-3, just with `streamText` instead of `ToolLoopAgent`.
+> No React knowledge needed. The UI is pre-built. You only edit one file: `ai-tools.ts`. The Vite plugin (`vite-api-plugin.ts`) handles all the server plumbing and imports your tools automatically. This challenge is about wiring your tools from Challenge 05 into a streaming endpoint.
 
 ## Key concept
 
-In Challenges 1-3 you used `ToolLoopAgent` to run the agent loop. Here you use `streamText` from `ai` instead -- it's the streaming equivalent. Same agent loop (LLM calls tools, sees results, writes a response), but tokens stream to the browser as they're generated.
+In Challenges 2-4 you used `ToolLoopAgent` to run the agent loop. Here you use `streamText` from `ai` instead -- it's the streaming equivalent. Same agent loop (LLM calls tools, sees results, writes a response), but tokens stream to the browser as they're generated.
 
 The frontend is pre-built using [AI SDK Elements](https://elements.ai-sdk.dev) - pre-made chat components (`Conversation`, `Message`, `Response`, `PromptInput`, `Tool`) so you don't have to write UI code. You just need to add your tool definitions and system prompt to `ai-tools.ts`.
 
@@ -26,15 +28,15 @@ The extra pieces are only there because this challenge is connected to a browser
 - `convertToModelMessages(messages)` adapts UI chat messages into model messages
 - `toUIMessageStreamResponse()` turns the streamed result into an HTTP response the frontend can read
 
-If you understand Challenges 1-3, this challenge is mostly about packaging the same agent pattern for a UI.
+If you understand Challenges 02-05, this challenge is mostly about packaging the same agent pattern for a UI.
 
 ## Your tasks
 
-Open `challenges/04-ui/ai-tools.ts` and complete the 3 TODOs:
+Open `challenges/06-ui/ai-tools.ts` and complete the 3 TODOs:
 
 ### TODO 1: Define your 5 tools
 
-Copy the tool definitions from your Challenge 3 solution:
+Copy the tool definitions from your Challenge 4 solution:
 - `getWeather` - weather lookup by city
 - `searchFlights` - flight search between cities
 - `convertCurrency` - currency conversion
@@ -84,19 +86,15 @@ If you're facilitating, keep the room focused on `ai-tools.ts`. The React UI and
 
 ## Run it
 
-From the repo root:
-
 ```bash
+# Run your solution for this challenge
 npm run ui
-```
 
-To compare against the completed reference:
-
-```bash
+# Run the reference solution (if you get stuck)
 npm run solution:ui
 ```
 
-Then open [http://localhost:3000](http://localhost:3000).
+Then open [http://localhost:3000](http://localhost:3000) in your browser.
 
 Try clicking a destination in the sidebar to send a pre-built question.
 
@@ -115,10 +113,84 @@ You are on track if:
 
 > **Note:** AI SDK DevTools is experimental and intended for local development only. Do not use in production environments.
 
-The chat API uses [AI SDK DevTools](https://ai-sdk.dev/docs/ai-sdk-core/devtools). You can inspect streaming runs, tool calls, and steps in a web UI.
+DevTools shows your streaming agent runs in real-time. You can watch tool calls fire while the response streams back to the browser.
 
-- **Launch the viewer:** In another terminal run `npx @ai-sdk/devtools`, then open [http://localhost:4983](http://localhost:4983).
-- **Disable DevTools:** Set `AI_SDK_DEVTOOLS=0` when starting the UI (e.g. `AI_SDK_DEVTOOLS=0 npm run ui`).
+### How to use it
+
+In **one terminal**, start the DevTools viewer:
+
+```bash
+npm run devtools
+```
+
+In **another terminal**, start the UI:
+
+```bash
+npm run ui
+```
+
+Then:
+
+1. Open your chat UI at [http://localhost:3000](http://localhost:3000)
+2. Open DevTools at [http://localhost:4983](http://localhost:4983)
+3. Type a prompt in the chat and hit send
+4. Watch DevTools in real-time as your agent runs
+
+### What you should see
+
+- Tool calls appearing as the agent runs (not waiting for the full response)
+- Streamed tokens in the DevTools output
+- Each tool call followed by its result
+
+### Debugging: "Chat loads but tools don't fire"
+
+**First, check the browser console:**
+
+1. Open your browser's DevTools (F12 or Cmd+Shift+I)
+2. Go to **Console** tab
+3. Any errors? (Parsing errors, missing exports, etc.)
+4. Type a prompt and watch for error messages
+
+**Then, check AI SDK DevTools:**
+
+1. Send a prompt in the chat
+2. Go to [http://localhost:4983](http://localhost:4983)
+3. Look at the run — do you see `generateText` or `streamText` being called?
+4. Check the steps — are there `toolUse` objects?
+
+**If tools appear in AI SDK DevTools but not in chat:**
+- Check browser console for streaming errors
+- The tools are being called — the display isn't updating correctly
+
+**If tools don't appear in either place:**
+1. Check your `ai-tools.ts` exports
+2. Did you export `const tools = { ... }` and `const systemPrompt = ...`?
+3. Did you update your system prompt to mention the tools?
+
+### Browser Network Tab
+
+For streaming-specific debugging:
+
+1. Open browser DevTools → **Network** tab
+2. Send a prompt
+3. Click the `/api/chat` request
+4. Look at the **Response** tab — you should see the streamed chunks coming in
+5. Each chunk is a JSON object with token and tool data
+
+### Debugging: "Streaming seems slow"
+
+1. Open AI SDK DevTools
+2. Check token counts and timing
+3. If reasonable (normal is 1-3 seconds for a full response), the backend is fine
+4. If very slow (5+ seconds), check:
+   - Is Ollama running? (`ollama serve` in another terminal)
+   - Is your destination database loaded? (First run embeds all destinations — that's 30-60 seconds)
+
+### Disable DevTools (optional)
+
+```bash
+AI_SDK_DEVTOOLS=0 npm run ui
+```
 
 ## Hints
 

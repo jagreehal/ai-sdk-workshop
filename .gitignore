@@ -3,3 +3,6 @@ dist/
 .env
 .devtools
 ___temp/
+.DS_Store
+.playwright-cli
+.playwright-mcp

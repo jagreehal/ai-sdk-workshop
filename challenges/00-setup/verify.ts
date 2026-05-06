@@ -34,13 +34,13 @@ async function main() {
 
   await check('Challenge directories exist', async () => {
     const required = [
-      'challenges/01-tools/start',
-      'challenges/01-tools/finish',
-      'challenges/02-multi-agent/start',
-      'challenges/02-multi-agent/finish',
-      'challenges/03-rag/start',
-      'challenges/03-rag/finish',
-      'challenges/04-ui/src',
+      'challenges/03-tools/start',
+      'challenges/03-tools/finish',
+      'challenges/04-multi-agent/start',
+      'challenges/04-multi-agent/finish',
+      'challenges/05-rag/start',
+      'challenges/05-rag/finish',
+      'challenges/06-ui/src',
     ];
     const missing = required.filter(p => !existsSync(join(root, p)));
     if (missing.length > 0) {
@@ -49,10 +49,10 @@ async function main() {
     console.log(`         All ${required.length} challenge directories found`);
   });
 
-  await check('UI dependencies installed (04-ui)', async () => {
-    const uiNodeModules = join(root, 'challenges/04-ui/node_modules');
+  await check('UI dependencies installed (06-ui)', async () => {
+    const uiNodeModules = join(root, 'challenges/06-ui/node_modules');
     if (!existsSync(uiNodeModules)) {
-      throw new Error('Run: npm --prefix challenges/04-ui install');
+      throw new Error('Run: npm --prefix challenges/06-ui install');
     }
   });
 

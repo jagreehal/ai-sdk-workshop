@@ -3,7 +3,7 @@
 
 import { tool } from 'ai';
 import { z } from 'zod';
-import { destinations, activities } from './src/data';
+import { destinations, activities } from './src/data.ts';
 
 function normalizeLookup(value: string): string {
   return value

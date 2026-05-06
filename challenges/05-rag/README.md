@@ -1,6 +1,44 @@
-# 03 - Agent + RAG
+# 05 - Agent + RAG
 
 TripMate can plan trips, but ask "Where should I go?" and it can only guess. RAG gives it your own data -- 30 curated destinations that the agent can search for grounded recommendations.
+
+## Mental Model
+
+```
+Without RAG (guessing):
+  User: "Where should I go for a warm beach on a budget?"
+  Agent: "Hmm, maybe Bali?" ← Just a guess
+
+           ↓↓↓ Add RAG ↓↓↓
+
+With RAG (grounded):
+  User: "Where should I go for a warm beach on a budget?"
+         
+         ↓
+  
+  Agent calls searchDestinations("warm beach on a budget")
+         
+         ↓
+  
+  Database search + embedding similarity:
+    Top 1: Bali (match: 0.92)
+    Top 2: Phuket (match: 0.89)
+    Top 3: Cancun (match: 0.87)
+         
+         ↓
+  
+  Agent sees real data and uses other tools:
+    • getWeather("Bali")
+    • searchFlights to Bali
+    • getActivities in Bali
+         
+         ↓
+  
+  Agent: "Based on the database, Bali is the best match
+          because..." ← Grounded in data, not guessing
+```
+
+**Key difference:** RAG adds a retrieval step that grounds the agent in real data.
 
 ## What is RAG?
 
@@ -106,10 +144,10 @@ If you're facilitating, tell the room ahead of time that the first run can pause
 ## Run it
 
 ```bash
-# Run your solution
+# Run your solution for this challenge
 npm run q3
 
-# Run the reference solution
+# Run the reference solution (if you get stuck)
 npm run solution:q3
 ```
 
@@ -117,10 +155,70 @@ npm run solution:q3
 
 > **Note:** AI SDK DevTools is experimental and intended for local development only. Do not use in production environments.
 
-This challenge uses [AI SDK DevTools](https://ai-sdk.dev/docs/ai-sdk-core/devtools). You can inspect RAG tool calls, embeddings, and multi-step runs in a web UI. The shared model is wrapped with DevTools middleware when not in production.
+DevTools shows the entire RAG flow: the initial LLM call, the decision to search the database, the retrieval results, and how the LLM chains other tools based on what it found.
 
-- **Launch the viewer:** In another terminal run `npx @ai-sdk/devtools`, then open [http://localhost:4983](http://localhost:4983).
-- **Disable DevTools:** Set `AI_SDK_DEVTOOLS=0` when running the agent.
+### How to use it
+
+In **one terminal**, start the DevTools viewer:
+
+```bash
+npm run devtools
+```
+
+In **another terminal**, run your agent:
+
+```bash
+npm run q3
+```
+
+Then open [http://localhost:4983](http://localhost:4983).
+
+### What you should see
+
+A single run with **4+ steps**:
+
+- **Step 1**: Initial LLM call (prompt + all available tools)
+- **Step 2**: LLM calls `searchDestinations` with a query
+- **Step 3+**: LLM chains other tools (weather, flights, activities) based on the destinations found
+- **Final step**: LLM generates answer using all the tool results
+
+### Debugging: "searchDestinations never gets called"
+
+1. Open DevTools and find your run
+2. Click **Step 1** to expand it
+3. Look at **"Tools"** — do you see `searchDestinations` listed?
+4. If not, it wasn't added to the `tools` object
+
+**If it's listed but the model skips it:**
+
+1. Check the **System prompt** — does it tell the model when to use `searchDestinations`?
+2. Check `searchDestinations` tool description — is it clear enough?
+   - Bad: "Search destinations"
+   - Good: "Search the destination database for places matching a travel query. Use this when the user asks for destination recommendations or 'where should I go?'"
+
+**Fix**: Update your instructions to explicitly say: "When the user asks where to go, always use the searchDestinations tool first"
+
+### Debugging: "Tool returns empty results"
+
+1. Find the step where `searchDestinations` is called
+2. Look at **"Tool result"** — you should see a list of destination objects
+3. If empty, check:
+   - Is your `query` clear enough? ("warm beach on a budget" works better than "beach")
+   - Are there destinations in your database? (Check `shared/data/destinations.ts`)
+
+### Debugging: "Agent gets stuck in a loop"
+
+1. Count the steps in your run
+2. If you see 10+ steps, the `stepCountIs(10)` limit was hit
+3. This usually means the agent isn't satisfied with the results
+
+**Fix**: Make sure your tool descriptions and instructions guide the agent toward a clear end state.
+
+### Disable DevTools (optional)
+
+```bash
+AI_SDK_DEVTOOLS=0 npm run q3
+```
 
 ## Expected output
 
@@ -251,15 +349,19 @@ This is RAG in its simplest form: search your data, give it to the model, let it
 
 ## Debugging
 
-| Problem | Fix |
-|---------|-----|
-| `Cannot find module '../../../shared/search-destinations.ts'` | Make sure you're running from the repo root with `npm run q3` |
-| `searchDb is not a function` | Check TODO 1 - you need to uncomment the import line |
-| Agent does not call `searchDestinations` | Check TODO 3 - your instructions need to mention the destination database |
-| `searchDestinations` not in tool calls | Check TODO 4 - make sure you added it to the `tools` object |
-| `amount` validation error in currency conversion | Some local models emit `"350"` instead of `350` | Use `z.coerce.number()` in `convertCurrency` |
-| Embedding step takes a long time | Normal on first run (30-60s). Subsequent runs are instant |
-| Ollama connection error | Run `ollama serve` in another terminal, then `ollama pull granite4:latest` |
+| Problem | Root Cause | Fix | Why This Works |
+|---------|-----------|-----|-----------------|
+| `Cannot find module '../../../shared/search-destinations.ts'` | Running from wrong directory | Make sure you're in repo root, then `npm run q3` | Relative paths are relative to pwd, not file location |
+| `searchDb is not a function` | Import not uncommented or wrong name | Check TODO 1 - uncomment the import, verify name is `searchDb` | The import must be active before the variable is used |
+| `Cannot read property 'similarity' of undefined` | `searchDb()` returned empty results | Check destination data exists in `shared/data/destinations.ts` | Empty retrieval breaks the map chain |
+| Agent does not call `searchDestinations` | Instructions don't mention destination database | Check TODO 3 - explicitly say "use searchDestinations tool for recommendations" | Model needs explicit guidance on when to use RAG |
+| `searchDestinations` not appearing in tool calls | Tool not wired in `tools` object | Check TODO 4 - add `searchDestinations` to the tools export | Agent can only call tools it knows about |
+| `amount` validation error in currency conversion | Model sends `"350"` instead of `350` | Use `z.coerce.number()` in convertCurrency schema | Some LLMs don't auto-coerce JSON types |
+| Final answer doesn't reference database | Model found results but didn't use them | Check instructions - explicitly encourage grounded recommendations | Model needs explicit guidance to cite retrieval results |
+| Embedding step takes 30-60 seconds | First run must embed all 30 destinations | This is normal and expected | Embedding is computed once per session, then cached |
+| Embedding step takes longer each run | Old embeddings not cached, regenerating each time | Check environment variables, restart terminal, verify cache isn't disabled | In-memory cache resets on process restart |
+| Ollama connection error | `ollama serve` not running or model not pulled | Run `ollama serve` in another terminal, then `ollama pull granite4:latest` | LLM must be available for inference |
+| Search results look irrelevant | Query too vague or embedding model mismatch | Try more specific queries like "beach with nightlife" vs just "beach" | Embeddings match on specific language patterns |
 
 ## How to debug
 
@@ -282,6 +384,23 @@ Use this escalation path:
 3. Confirm the instructions explicitly mention destination recommendations
 4. Confirm the tool is added to `tools`
 5. Then compare with `finish/agent.ts`
+
+## Key Insight
+
+RAG is not a separate architecture. It's just "retrieval as a tool inside the agent loop."
+
+Once you understand that:
+- The agent calls searchDestinations like any other tool
+- The model sees the retrieval results and decides what to do next
+- Tool results feed back into the agent loop
+
+You realize RAG doesn't change your workflow. You define a tool, the agent uses it, and you get grounded answers instead of hallucinations.
+
+This is why RAG is powerful: it's not complicated. It's just a tool that returns real data instead of made-up data. The agent does the rest.
+
+The only new concept is embeddings (which the helper handles for you). Everything else is the same agent pattern you already know.
+
+---
 
 ## Success criteria
 

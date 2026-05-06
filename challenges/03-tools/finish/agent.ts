@@ -1,18 +1,10 @@
-// Challenge 1: Agent + One Tool
+// Challenge 03: Tools
 // Build an agent that uses getWeather to answer travel questions
 
 import { ToolLoopAgent, tool, stepCountIs } from 'ai';
 import { z } from 'zod';
 import { model } from '../../../shared/model.ts';
-
-import { init } from 'autotel';
-
-init({
-  service: '01-tools',
-  version: '1.0.0',
-  environment: 'development',
-  debug: true,
-});
+import { weatherData } from '../../../shared/utils.ts';
 
 const getWeather = tool({
   description: 'Get the current weather for a city',
@@ -20,14 +12,7 @@ const getWeather = tool({
     city: z.string().describe('The city name'),
   }),
   execute: async ({ city }) => {
-    const data: Record<string, { temp: number; condition: string }> = {
-      london: { temp: 12, condition: 'rainy' },
-      tokyo: { temp: 22, condition: 'sunny' },
-      bali: { temp: 30, condition: 'tropical' },
-      paris: { temp: 18, condition: 'partly cloudy' },
-      lisbon: { temp: 24, condition: 'sunny and mild' },
-    };
-    const weather = data[city.toLowerCase()] || { temp: 20, condition: 'mild' };
+    const weather = weatherData[city.toLowerCase()] || { temp: 20, condition: 'mild' };
     return { city, temperature: `${weather.temp}°C`, condition: weather.condition };
   },
 });
@@ -37,7 +22,6 @@ const agent = new ToolLoopAgent({
   instructions: 'You are TripMate, a helpful travel assistant. When asked about weather or what to pack, use the getWeather tool to check conditions first.',
   tools: { getWeather },
   stopWhen: stepCountIs(10),
-  experimental_telemetry: { isEnabled: true },
 });
 
 async function main() {

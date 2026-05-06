@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TripMate - Travel Planning Agent</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .message {
+      margin: 12px 0;
+      padding: 12px;
+      border-radius: 8px;
+      line-height: 1.5;
+      animation: fadeIn 0.3s ease-in;
+    }
+    .user-message {
+      background-color: #dbeafe;
+      text-align: right;
+      margin-left: 20%;
+    }
+    .agent-message {
+      background-color: #f3f4f6;
+      margin-right: 20%;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-5px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    #messages {
+      scroll-behavior: smooth;
+    }
+  </style>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-50">
+  <div class="min-h-screen flex flex-col">
+    <!-- Header -->
+    <div class="bg-white border-b shadow-sm">
+      <div class="max-w-3xl mx-auto px-4 py-4">
+        <h1 class="text-3xl font-bold text-gray-900">🧳 TripMate</h1>
+        <p class="text-gray-600 text-sm">Your AI travel planning assistant</p>
+      </div>
+    </div>
+
+    <!-- Chat Container -->
+    <div class="flex-1 overflow-hidden flex flex-col">
+      <div class="max-w-3xl mx-auto w-full flex flex-col flex-1 px-4 py-4">
+        <!-- Messages -->
+        <div id="messages" class="flex-1 overflow-y-auto border rounded-lg bg-white shadow-sm p-4 mb-4">
+          <div class="text-center text-gray-400 py-8">
+            <p class="text-lg">👋 Welcome to TripMate!</p>
+            <p class="text-sm mt-2">Ask me to plan a trip, find destinations, or check the weather.</p>
+          </div>
+        </div>
+
+        <!-- Input Area -->
+        <div class="flex gap-2">
+          <!-- TODO 1: Create the input field and send button
+
+          You need:
+          - An input field (id="input") where the user types their message
+          - A send button (id="send") to submit
+          - Use Tailwind classes for styling (see examples below)
+
+          Example:
+          <input
+            id="input"
+            type="text"
+            placeholder="Ask me about destinations..."
+            class="flex-1 border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+          <button
+            id="send"
+            class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg font-medium transition"
+          >
+            Send
+          </button>
+          -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // TODO 2: Wire up the chat interface
+    // You need to:
+    // 1. Get references to the input, send button, and messages div
+    // 2. Listen for the send button click
+    // 3. Send a POST request to /api/chat with { message: userInput }
+    // 4. Read the streaming response and display it as it arrives
+    // 5. Clear the input field and scroll to the new message
+    // 6. Handle Enter key to send
+    //
+    // Pattern:
+    // const input = document.getElementById('input');
+    // const send = document.getElementById('send');
+    // const messages = document.getElementById('messages');
+    //
+    // send.addEventListener('click', async () => {
+    //   const message = input.value.trim();
+    //   if (!message) return;
+    //
+    //   // Add user message to chat
+    //   const userDiv = document.createElement('div');
+    //   userDiv.className = 'message user-message';
+    //   userDiv.textContent = message;
+    //   messages.appendChild(userDiv);
+    //   input.value = '';
+    //
+    //   // Create container for agent response
+    //   const agentDiv = document.createElement('div');
+    //   agentDiv.className = 'message agent-message';
+    //   messages.appendChild(agentDiv);
+    //   messages.scrollTop = messages.scrollHeight;
+    //
+    //   // Send request and stream response
+    //   const response = await fetch('/api/chat', {
+    //     method: 'POST',
+    //     headers: { 'Content-Type': 'application/json' },
+    //     body: JSON.stringify({ message }),
+    //   });
+    //
+    //   const reader = response.body.getReader();
+    //   const decoder = new TextDecoder();
+    //   let fullText = '';
+    //
+    //   while (true) {
+    //     const { done, value } = await reader.read();
+    //     if (done) break;
+    //     const chunk = decoder.decode(value);
+    //     fullText += chunk;
+    //     agentDiv.textContent = fullText;
+    //     messages.scrollTop = messages.scrollHeight;
+    //   }
+    // });
+    //
+    // // Allow Enter to send
+    // input.addEventListener('keypress', (e) => {
+    //   if (e.key === 'Enter') send.click();
+    // });
+  </script>
+</body>
+</html>

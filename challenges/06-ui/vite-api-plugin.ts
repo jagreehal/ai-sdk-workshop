@@ -8,9 +8,6 @@ import { streamText, convertToModelMessages, wrapLanguageModel, stepCountIs } fr
 import { devToolsMiddleware } from '@ai-sdk/devtools';
 import { init } from 'autotel';
 
-const toolsPath = process.env.SOLUTION === '1' ? './ai-tools.finish.ts' : './ai-tools.ts';
-const { tools, systemPrompt } = await import(toolsPath);
-
 init({
   service: '04-ui',
   version: '1.0.0',
@@ -29,7 +26,13 @@ export function apiPlugin(): Plugin {
         req.on('data', (chunk: Buffer) => { body += chunk.toString(); });
         req.on('end', async () => {
           try {
-            const { messages } = JSON.parse(body);
+            // Load tools on each request to support SOLUTION environment variable
+            const toolsFile = process.env.SOLUTION === '1' ? 'ai-tools.finish.ts' : 'ai-tools.ts';
+            const toolsUrl = new URL(toolsFile, import.meta.url);
+            const { tools, systemPrompt } = await import(toolsUrl.href);
+
+            const parsed = JSON.parse(body);
+            const messages = parsed.messages || parsed;
 
             const ollama = createOllama({
               baseURL: process.env.OLLAMA_BASE_URL || 'http://localhost:11434',
@@ -40,13 +43,11 @@ export function apiPlugin(): Plugin {
                 ? baseModel
                 : wrapLanguageModel({ model: baseModel, middleware: devToolsMiddleware() });
 
-            const modelMessages = await convertToModelMessages(messages);
-
             const result = await streamText({
               stopWhen: stepCountIs(20),
               experimental_telemetry: { isEnabled: true },
               model,
-              messages: modelMessages,
+              messages: Array.isArray(messages) ? messages : [],
               tools,
               system: systemPrompt,
             });
