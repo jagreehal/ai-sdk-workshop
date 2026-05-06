@@ -10,5 +10,5 @@
     "noEmit": true,
     "types": ["node"]
   },
-  "exclude": ["challenges/04-ui"]
+  "exclude": ["challenges/06-ui"]
 }

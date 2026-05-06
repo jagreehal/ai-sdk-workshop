@@ -1,4 +1,4 @@
-// Challenge 3: Agent + RAG
+// Challenge 05: RAG
 // The agent can now search your destination database for grounded recommendations
 
 import { ToolLoopAgent, tool, stepCountIs } from 'ai';
@@ -6,15 +6,7 @@ import { z } from 'zod';
 import { model } from '../../../shared/model.ts';
 import { searchDestinations as searchDb } from '../../../shared/search-destinations.ts';
 import { destinations } from '../../../shared/data/destinations.ts';
-
-import {init} from 'autotel';
-
-init({
-  service: '03-rag',
-  version: '1.0.0',
-  environment: 'development',
-  debug: true,
-});
+import { getRouteSeed, weatherData, activitiesData, currencyRates } from '../../../shared/utils.ts';
 
 const destinationCityMap: Record<string, string> = {
   'Tokyo, Japan': 'Tokyo',
@@ -49,34 +41,11 @@ const destinationCityMap: Record<string, string> = {
   'Costa Rica': 'San Jose',
 };
 
-function getRouteSeed(from: string, to: string, date: string): number {
-  return `${from}-${to}-${date}`
-    .toLowerCase()
-    .split('')
-    .reduce((total, char) => total + char.charCodeAt(0), 0);
-}
-
 const getWeather = tool({
   description: 'Get the current weather for a city',
   inputSchema: z.object({ city: z.string().describe('The city name') }),
   execute: async ({ city }) => {
-    const data: Record<string, { temp: number; condition: string }> = {
-      london: { temp: 12, condition: 'rainy' },
-      tokyo: { temp: 22, condition: 'sunny' },
-      bali: { temp: 30, condition: 'tropical' },
-      paris: { temp: 18, condition: 'partly cloudy' },
-      lisbon: { temp: 24, condition: 'sunny and mild' },
-      cancun: { temp: 29, condition: 'warm and breezy' },
-      bangkok: { temp: 33, condition: 'hot and humid' },
-      santorini: { temp: 26, condition: 'sunny with sea breeze' },
-      'hoi an': { temp: 31, condition: 'hot and sunny' },
-      marrakech: { temp: 28, condition: 'hot and dry' },
-      queenstown: { temp: 16, condition: 'cool and clear' },
-      maldives: { temp: 31, condition: 'tropical and sunny' },
-      'cape town': { temp: 23, condition: 'sunny with coastal breeze' },
-      'san jose': { temp: 27, condition: 'warm with scattered showers' },
-    };
-    const weather = data[city.toLowerCase()] || { temp: 20, condition: 'mild' };
+    const weather = weatherData[city.toLowerCase()] || { temp: 20, condition: 'mild' };
     return { city, temperature: `${weather.temp}°C`, condition: weather.condition };
   },
 });
@@ -109,11 +78,7 @@ const convertCurrency = tool({
     to: z.string().describe('Target currency code (e.g., GBP)'),
   }),
   execute: async ({ amount, from, to }) => {
-    const rates: Record<string, number> = {
-      'USD-GBP': 0.79, 'USD-EUR': 0.92, 'USD-JPY': 149.5,
-      'GBP-USD': 1.27, 'GBP-EUR': 1.16, 'EUR-USD': 1.09,
-    };
-    const rate = rates[`${from}-${to}`] || 1;
+    const rate = currencyRates[`${from}-${to}`] || 1;
     return { original: `${amount} ${from}`, converted: `${(amount * rate).toFixed(2)} ${to}`, rate };
   },
 });
@@ -122,20 +87,7 @@ const getActivities = tool({
   description: 'Get popular activities and things to do in a city',
   inputSchema: z.object({ city: z.string().describe('The city to get activities for') }),
   execute: async ({ city }) => {
-    const activities: Record<string, string[]> = {
-      tokyo: ['Visit Senso-ji Temple', 'Explore Shibuya Crossing', 'Try ramen in Shinjuku', 'See cherry blossoms in Ueno Park'],
-      london: ['Visit the British Museum', 'Walk along the South Bank', 'Explore Camden Market', 'See a West End show'],
-      bali: ['Visit Uluwatu Temple', 'Surf at Kuta Beach', 'Explore rice terraces in Ubud', 'Watch a Kecak fire dance'],
-      lisbon: ['Ride Tram 28 through Alfama', 'Try pastéis de nata in Belém', 'Take a day trip to Cascais beaches', 'Watch sunset from a miradouro'],
-      cancun: ['Relax on Playa Delfines', 'Swim in a cenote', 'Visit nearby Tulum ruins', 'Snorkel along the reef'],
-      bangkok: ['Visit Wat Pho and the Grand Palace', 'Take a longtail boat through the canals', 'Eat street food in Yaowarat', 'Enjoy a rooftop sunset'],
-      santorini: ['Watch sunset in Oia', 'Relax on Perissa Beach', 'Take a caldera boat trip', 'Visit cliffside villages'],
-      'hoi an': ['Relax at An Bang Beach', 'Explore the lantern-lit old town', 'Cycle through rice paddies', 'Take a cooking class'],
-      maldives: ['Snorkel over coral reefs', 'Take a sunset boat cruise', 'Relax on a white-sand beach', 'Visit a local island'],
-      marrakech: ['Explore the medina souks', 'Visit Bahia Palace', 'Take a day trip to the Atlas foothills', 'Try tagine in Jemaa el-Fnaa'],
-      'cape town': ['Ride the cable car up Table Mountain', 'Visit Camps Bay beach', 'Explore the V&A Waterfront', 'Take a Cape Peninsula drive'],
-    };
-    return { city, activities: activities[city.toLowerCase()] || ['Explore the city centre', 'Visit local markets', 'Try the local cuisine'] };
+    return { city, activities: activitiesData[city.toLowerCase()] || ['Explore the city centre', 'Visit local markets', 'Try the local cuisine'] };
   },
 });
 
@@ -155,13 +107,7 @@ const searchDestinations = tool({
     return results
       .map((r) => {
         const meta = destinations.find((d) => d.name === r.name);
-        const haystack = [
-          r.name,
-          r.description,
-          meta?.climate ?? '',
-          meta?.type ?? '',
-          r.budget,
-        ].join(' ').toLowerCase();
+        const haystack = [r.name, r.description, meta?.climate ?? '', meta?.type ?? '', r.budget].join(' ').toLowerCase();
 
         let score = r.similarity;
         if (wantsBeach && meta?.type === 'beach') score += 0.35;
@@ -210,7 +156,6 @@ Then provide a comprehensive, grounded recommendation.`,
     searchDestinations,
   },
   stopWhen: stepCountIs(10),
-  experimental_telemetry: { isEnabled: true },
 });
 
 async function main() {

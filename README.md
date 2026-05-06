@@ -13,14 +13,13 @@ Everything runs locally with Ollama — no API keys, no cloud account, no cost.
 
 ```bash
 npm install
-npm --prefix challenges/04-ui install
 npm run verify
-npm run q1
+npm run q0
 ```
 
 ## What you're building
 
-```
+```text
 You: Plan a weekend in Lisbon on a budget
 
 TripMate:
@@ -33,19 +32,25 @@ TripMate:
 
 ## Challenges
 
-| Challenge     | Goal                                  | Command      |
-| ------------- | ------------------------------------- | ------------ |
-| 01 Tools      | Add a weather tool                    | `npm run q1` |
-| 02 More Tools | Add flights + activities              | `npm run q2` |
-| 03 RAG        | Search destination data with RAG      | `npm run q3` |
-| 04 UI         | Stream responses into a React chat UI | `npm run ui` |
+| Challenge          | Goal                                  | Command           |
+| ------------------ | ------------------------------------- | ----------------- |
+| 00 Hello, LLM      | Call the model and get text output    | `npm run q0`      |
+| 01 User Input      | Add user input to dynamic prompts     | `npm run q0-input`|
+| 02 Tools           | Add a weather tool                    | `npm run q1`      |
+| 03 Multi-Tool Agent| Add flights + activities tools        | `npm run q2`      |
+| 04 RAG             | Search destination data with RAG      | `npm run q3`      |
+| 06 UI (React)      | Stream responses into a React chat UI | `npm run ui`      |
+| 07 Full-Stack UI   | Stream responses into a simple Hono UI| `npm run q5`      |
 
 If you get stuck, use the matching solution script:
 
+- `npm run solution:q0`
+- `npm run solution:q0-input`
 - `npm run solution:q1`
 - `npm run solution:q2`
 - `npm run solution:q3`
-- `npm run solution:ui`
+- `npm run solution:q5` (Hono version)
+- `npm run solution:ui` (React version)
 
 ## Quick start
 
@@ -67,7 +72,6 @@ ollama pull embeddinggemma:latest
 
 # Install dependencies
 npm install
-npm --prefix challenges/04-ui install
 
 # Verify your setup
 npm run verify
@@ -128,17 +132,23 @@ Each challenge README explains the concept, the relevant APIs, the TODOs, how to
 
 ## Scripts
 
-| Command               | What it runs              |
-| --------------------- | ------------------------- |
-| `npm run q1`          | Challenge 01: Tools       |
-| `npm run q2`          | Challenge 02: More Tools  |
-| `npm run q3`          | Challenge 03: RAG         |
-| `npm run ui`          | Challenge 04 starter UI   |
-| `npm run solution:q1` | Solution for Challenge 01 |
-| `npm run solution:q2` | Solution for Challenge 02 |
-| `npm run solution:q3` | Solution for Challenge 03 |
-| `npm run solution:ui` | Solution for Challenge 04 |
-| `npm run verify`      | Verify your setup         |
+| Command                      | What it runs               |
+| ---------------------------- | -------------------------- |
+| `npm run q0`                 | Intro: Hello, LLM          |
+| `npm run q0-input`           | Intro: User Input          |
+| `npm run q1`                 | Challenge 02: Tools        |
+| `npm run q2`                 | Challenge 03: More Tools   |
+| `npm run q3`                 | Challenge 04: RAG          |
+| `npm run ui`                 | Challenge 06 starter UI    |
+| `npm run q5`                 | Challenge 07 full-stack UI |
+| `npm run solution:q0`        | Solution for Intro 00      |
+| `npm run solution:q0-input`  | Solution for Intro 01      |
+| `npm run solution:q1`        | Solution for Challenge 02  |
+| `npm run solution:q2`        | Solution for Challenge 03  |
+| `npm run solution:q3`        | Solution for Challenge 04  |
+| `npm run solution:ui`        | Solution for Challenge 06  |
+| `npm run solution:q5`        | Solution for Challenge 07  |
+| `npm run verify`             | Verify your setup          |
 
 ## Prerequisites
 
@@ -170,10 +180,6 @@ You only need a few AI SDK APIs for this workshop:
 
 You do not need to memorize these up front. Each challenge introduces them in context.
 
-## Pairing
+## Collaboration
 
-We recommend working in pairs:
-
-- Driver writes code
-- Navigator validates outputs and reads hints
-- Swap roles at challenge boundaries
+Work individually, in pairs, or in small groups—whatever works best for you. If collaborating, you can rotate who writes code and who validates outputs at challenge boundaries.

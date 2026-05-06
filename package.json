@@ -5,28 +5,37 @@
   "description": "TripMate AI — 90-minute quick workshop",
   "scripts": {
     "verify": "tsx challenges/00-setup/verify.ts",
-    "q1": "tsx challenges/01-tools/start/agent.ts",
-    "q2": "tsx challenges/02-multi-agent/start/agent.ts",
-    "q3:intro": "tsx challenges/03-rag/intro-embeddings.ts",
-    "q3": "tsx challenges/03-rag/start/agent.ts",
-    "ui": "npm --prefix challenges/04-ui run ui",
-    "solution:q1": "tsx challenges/01-tools/finish/agent.ts",
-    "solution:q2": "tsx challenges/02-multi-agent/finish/agent.ts",
-    "solution:q3": "tsx challenges/03-rag/finish/agent.ts",
-    "solution:ui": "npm --prefix challenges/04-ui run solution",
+    "q0": "tsx challenges/01-hello/start/agent.ts",
+    "q0-input": "tsx challenges/01-user-input/start/agent.ts",
+    "q1": "tsx challenges/03-tools/start/agent.ts",
+    "q2": "tsx challenges/04-multi-agent/start/agent.ts",
+    "q3:intro": "tsx challenges/05-rag/intro-embeddings.ts",
+    "q3": "tsx challenges/05-rag/start/agent.ts",
+    "q5": "tsx challenges/07-full-stack/start/server.ts",
+    "ui": "npm --prefix challenges/06-ui run ui",
+    "devtools": "@ai-sdk/devtools",
+    "solution:q0": "tsx challenges/01-hello/finish/agent.ts",
+    "solution:q0-input": "tsx challenges/01-user-input/finish/agent.ts",
+    "solution:q1": "tsx challenges/03-tools/finish/agent.ts",
+    "solution:q2": "tsx challenges/04-multi-agent/finish/agent.ts",
+    "solution:q3": "tsx challenges/05-rag/finish/agent.ts",
+    "solution:q5": "tsx challenges/07-full-stack/finish/server.ts",
+    "solution:ui": "npm --prefix challenges/06-ui run solution",
     "build": "tsc --noEmit",
     "precache": "tsx scripts/precache-embeddings.ts"
   },
   "dependencies": {
-    "ai": "^6.0.158",
+    "ai": "^6.0.174",
     "ai-sdk-ollama": "^3.8.3",
-    "autotel": "^2.26.0",
-    "zod": "^4.3.6"
+    "autotel": "^3.0.0",
+    "hono": "^4.12.16",
+    "@hono/node-server": "^2.0.1",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
-    "@ai-sdk/devtools": "^0.0.15",
+    "@ai-sdk/devtools": "^0.0.17",
     "@types/node": "^25.6.0",
     "tsx": "^4.21.0",
-    "typescript": "^6.0.2"
+    "typescript": "^6.0.3"
   }
 }

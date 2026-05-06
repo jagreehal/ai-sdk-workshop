@@ -1,4 +1,4 @@
-# 01 - Agent + One Tool
+# 02 - Agent + One Tool
 
 You're building **TripMate**, an AI travel assistant. An agent is just an LLM + tools + a loop - the model decides what tool to call, the SDK runs it, and the result gets fed back until the model has enough info to answer. In this challenge, you'll create your first agent with a single weather tool.
 
@@ -117,10 +117,60 @@ If you only see text and no tool call, do not keep guessing. Go back and inspect
 
 > **Note:** AI SDK DevTools is experimental and intended for local development only. Do not use in production environments.
 
-This challenge uses [AI SDK DevTools](https://ai-sdk.dev/docs/ai-sdk-core/devtools), so you can inspect LLM requests, responses, tool calls, and steps in a web UI. The shared model is wrapped with DevTools middleware when not in production.
+DevTools gives you full visibility into the agent loop. You can see the LLM request, its decision to call a tool, the tool's execution, and the final response—all in one place.
 
-- **Launch the viewer:** In another terminal run `npx @ai-sdk/devtools`, then open [http://localhost:4983](http://localhost:4983).
-- **Disable DevTools:** Set `AI_SDK_DEVTOOLS=0` when running the agent.
+### How to use it
+
+In **one terminal**, start the DevTools viewer:
+
+```bash
+npm run devtools
+```
+
+In **another terminal**, run your agent:
+
+```bash
+npm run q1
+```
+
+Then open [http://localhost:4983](http://localhost:4983).
+
+### What you should see
+
+A single run with **multiple steps**:
+
+- **Step 1**: Initial LLM call (your prompt + tool description)
+- **Step 2**: LLM's response (it decides to call `getWeather`)
+- **Step 3**: Tool execution (the weather data is looked up)
+- **Step 4**: LLM generates final answer
+
+### Debugging: "My tool never gets called"
+
+1. Open DevTools and find your run
+2. Click **Step 1** to expand it
+3. Look at the **"Tools"** section — you should see `getWeather` listed
+4. Look at the tool's `description` field — is it clear? (Bad: "Get weather". Good: "Get the current weather for a city")
+5. Look at the **System prompt** — does it tell the model to use this tool?
+
+**If the tool isn't in Step 1:**
+- The tool wasn't added to the `tools` object in your agent config
+
+**If the tool is listed but Step 2 has no tool call:**
+- Update the tool `description` to be more explicit ("Use this to check weather before giving packing advice")
+- Update your `instructions` to mention the tool ("When asked about what to pack, use the getWeather tool")
+
+### Debugging: "My tool returns the wrong data"
+
+1. Open the step where the tool is called
+2. Look at **"Tool result"** or **"Output content"** — what did your tool actually return?
+3. Compare it with what your `execute` function should return
+4. Are you missing fields? Returning strings instead of objects?
+
+### Disable DevTools (optional)
+
+```bash
+AI_SDK_DEVTOOLS=0 npm run q1
+```
 
 ## Expected output
 
